@@ -6,6 +6,7 @@ const crypto = require('crypto');
 const path = require('path');
 const AdmZip = require('adm-zip');
 const { signBurstLimiter, signHourlyLimiter } = require('../middleware/rateLimit');
+const { requireAttest } = require('../middleware/appAttest');
 const upload = multer({
   dest: '/tmp',
   limits: {fileSize: 20 * 1024 * 1024}  // 20MB limit
@@ -33,8 +34,8 @@ function resolveCerts(passTypeIdentifier) {
   return { privateKeyPem: process.env[pkKey] || null, certificatePem: process.env[certKey] || null };
 }
 
-// Rate limiters run before multer, so a request over the limit is rejected with 429 before the server receives and parses the upload.
-router.post('/sign', signBurstLimiter, signHourlyLimiter, upload.single('pkpass'), (req, res) => {
+// Rate limiters and App Attest run before multer, so a request over the limit or with a bad attestation is rejected before the server receives and parses the upload.
+router.post('/sign', signBurstLimiter, signHourlyLimiter, requireAttest, upload.single('pkpass'), (req, res) => {
   if (verbose) console.log('Received a request to /sign');
   if (!req.file) {
     return res.status(400).send('Missing "pkpass" file upload');

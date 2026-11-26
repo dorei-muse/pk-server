@@ -1,6 +1,6 @@
 const expressRateLimit = require('express-rate-limit');
 const { Ratelimit } = require('@upstash/ratelimit');
-const { Redis } = require('@upstash/redis');
+const { redis } = require('../lib/redis');
 
 // Rate limiting for POST /sign.
 
@@ -16,11 +16,7 @@ function tooManyRequests(req, res) {
   res.status(429).json({ error: 'Too many signing requests, try again later' });
 }
 
-// Credentials come from the Vercel Upstash integration.
-const redisUrl = process.env.KV_REST_API_URL;
-const redisToken = process.env.KV_REST_API_TOKEN;
-const redis = redisUrl && redisToken ? new Redis({ url: redisUrl, token: redisToken }) : null;
-
+// Redis client comes from lib/redis.js, shared with App Attest storage.
 if (!redis) {
   console.warn('Rate limiting: Upstash Redis not configured, using per-instance in-memory store');
 }

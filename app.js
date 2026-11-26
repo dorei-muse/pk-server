@@ -3,6 +3,7 @@ var express = require('express');
 var logger = require('morgan');
 
 var indexRouter = require('./routes/index');
+var attestRouter = require('./routes/attest');
 
 var app = express();
 
@@ -12,6 +13,7 @@ app.set('trust proxy', 1);
 
 app.use(logger('dev'));
 
+app.use('/attest', attestRouter);
 app.use('/', indexRouter);
 
 // catch 404
